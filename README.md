@@ -29,8 +29,9 @@ Transport  = Distance (km) × Vehicle Rate (₹/km)
 ```
 krishi-route-ts/                    ← GitHub repo root
 │
-├── krishi-vite/                    ← 🖥️  Frontend (React + Vite + TypeScript)
-│   ├── index.html
+├── frontend/                    ← 🖥️  Frontend (React + Vite + TypeScript)
+│   ├── public/
+    |     |──index.html
 │   ├── vite.config.ts
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
@@ -56,7 +57,7 @@ krishi-route-ts/                    ← GitHub repo root
 │       └── styles/
 │           └── global.css
 │
-├── krishi-server/                  ← 🔧 Backend (Express + MongoDB + TypeScript)
+├── backend/                  ← 🔧 Backend (Express + MongoDB + TypeScript)
 │   ├── .env.example
 │   ├── tsconfig.json
 │   ├── package.json
@@ -120,7 +121,7 @@ cd krishi-route-ts
 ### 2. Start the Backend
 
 ```bash
-cd krishi-server
+cd backend
 
 # Install dependencies
 npm install
@@ -148,13 +149,13 @@ curl http://localhost:5000/health
 
 ```bash
 # Open a new terminal tab
-cd krishi-vite
+cd frotend
 
 # Install dependencies
 npm install
 
 # Start Vite dev server
-npm run dev
+npm start 
 # → App running at http://localhost:3000
 ```
 
@@ -182,7 +183,7 @@ AGMARKNET_API_KEY=your_key_here
 GOOGLE_MAPS_API_KEY=your_key_here
 ```
 
-### Frontend — `krishi-vite/.env`
+### Frontend — `frontend/.env`
 
 ```env
 # Backend API URL
