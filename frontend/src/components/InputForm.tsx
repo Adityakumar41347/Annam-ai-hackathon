@@ -18,18 +18,27 @@ interface Props {
 
 const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
   const [form, setForm] = useState<FormState>({
-    crop:     "onion",
-    qty:      5,
-    unit:     "quintal",
-    vehicle:  "tata_ace",
-    location: "haridwar",
-    handling: 200,
+    crop:     "",
+    qty:      0,
+    unit:     "",
+    vehicle:  "",
+    location: "",
+    handling: 0,
   });
 
   const setField =
     <K extends keyof FormState>(key: K) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
       const raw = e.target.value;
+      if (key === "vehicle") {
+  const selectedVehicle = VEHICLES.find((v) => v.value === raw);
+  setForm((prev) => ({
+    ...prev,
+    vehicle: raw,
+    handling: selectedVehicle ? selectedVehicle.loadingCost : prev.handling,
+  }));
+  return;
+}
       setForm((prev) => ({
         ...prev,
         [key]: key === "qty" || key === "handling" ? parseFloat(raw) || 0 : raw,
@@ -47,17 +56,24 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
   };
 
   return (
+
+    
     <div style={styles.panel}>
       <div style={styles.sectionLabel}>Trip Details</div>
 
       <div style={styles.grid}>
+
         <Field label="Crop Type">
-          <select value={form.crop} onChange={setField("crop")} style={styles.control}>
+          <select value={form.crop} onChange={setField("crop")} style={styles.control} >
+            
+            <option value="" disabled hidden>Select The Crop 🌾</option>
+
             {CROPS.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.emoji} {c.label}
               </option>
             ))}
+            
           </select>
         </Field>
 
@@ -73,15 +89,21 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
 
         <Field label="Unit">
           <select value={form.unit} onChange={setField("unit")} style={styles.control}>
+            <option value="" disabled hidden >Select Unit (Kg, Quintal, etc.)</option>
+            {/* <option value="kg">Kilogram</option> */}
             <option value="quintal">Quintal (100 kg)</option>
             <option value="ton">Metric Ton</option>
-            <option value="kg">Kilogram</option>
+            
           </select>
         </Field>
 
         <Field label="Vehicle">
           <select value={form.vehicle} onChange={setField("vehicle")} style={styles.control}>
+
+            <option value="" disabled hidden>Select The Vehicle 🛻</option>
+
             {VEHICLES.map((v) => (
+            
               <option key={v.value} value={v.value}>
                 {v.label} — {v.capacity} @ ₹{v.ratePerKm}/km
               </option>
@@ -104,7 +126,8 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
             type="number"
             value={form.handling}
             onChange={setField("handling")}
-            min={0} step={50}
+            readOnly
+
             style={styles.control}
           />
         </Field>
@@ -193,6 +216,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: "#aaa",
     cursor: "not-allowed",
   },
+  
 };
 
 export default InputForm;
