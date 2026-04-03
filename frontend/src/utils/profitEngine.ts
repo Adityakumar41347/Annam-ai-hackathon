@@ -18,7 +18,7 @@ import type {
 export function toQuintals(qty: number, unit: QuantityUnit): number {
   switch (unit) {
     case "ton":     return qty * 10;
-    case "kg":      return qty / 100;
+    //case "kg":      return qty / 100;
     case "quintal":
     default:        return qty;
   }

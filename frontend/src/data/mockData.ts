@@ -25,6 +25,7 @@ export const VEHICLES: Vehicle[] = [
 ];
 
 export const LOCATIONS: FarmerLocation[] = [
+  { value: "",              label: "Select Location",  lat: 0, lng:0 },
   { value: "haridwar",      label: "Haridwar, Uttarakhand",  lat: 29.9457, lng: 78.1642 },
   { value: "roorkee",       label: "Roorkee, Uttarakhand",   lat: 29.8543, lng: 77.8880 },
   { value: "muzaffarnagar", label: "Muzaffarnagar, UP",      lat: 29.4727, lng: 77.7085 },
