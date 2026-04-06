@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { CROPS, VEHICLES, LOCATIONS } from "../data/mockData";
-import type { AnalysisInputs, QuantityUnit } from "../types";
+import { LOCATIONS } from "../data/api";
+import type { AnalysisInputs, Crop, Vehicle, QuantityUnit } from "../types";
 
 interface FormState {
   crop:     string;
@@ -14,9 +14,11 @@ interface FormState {
 interface Props {
   onAnalyze: (inputs: AnalysisInputs) => void;
   loading:   boolean;
+  crops:     Crop[];
+  vehicles:  Vehicle[];
 }
 
-const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
+const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => {
   const [form, setForm] = useState<FormState>({
     crop:     "onion",
     qty:      5,
@@ -26,94 +28,131 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
     handling: 200,
   });
 
-  const setField =
-    <K extends keyof FormState>(key: K) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
-      const raw = e.target.value;
-      setForm((prev) => ({
-        ...prev,
-        [key]: key === "qty" || key === "handling" ? parseFloat(raw) || 0 : raw,
-      }));
-    };
+  const setStr =
+    (key: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLSelectElement>): void =>
+      setForm(prev => ({ ...prev, [key]: e.target.value }));
 
-  const handleSubmit = (): void => {
-    const crop     = CROPS.find((c) => c.value === form.crop);
-    const vehicle  = VEHICLES.find((v) => v.value === form.vehicle);
-    const location = LOCATIONS.find((l) => l.value === form.location);
+  const setNum =
+    (key: keyof FormState) =>
+    (e: React.ChangeEvent<HTMLInputElement>): void =>
+      setForm(prev => ({ ...prev, [key]: parseFloat(e.target.value) || 0 }));
 
+  const submit = (): void => {
+    const crop     = crops.find(c => c.value === form.crop);
+    const vehicle  = vehicles.find(v => v.value === form.vehicle);
+    const location = LOCATIONS.find(l => l.value === form.location);
     if (!crop || !vehicle || !location) return;
-
     onAnalyze({ crop, vehicle, location, qty: form.qty, unit: form.unit, handling: form.handling });
   };
 
   return (
-    <div style={styles.panel}>
-      <div style={styles.sectionLabel}>Trip Details</div>
+    <div style={s.panel}>
+      <p style={s.sectionLabel}>Trip Details</p>
 
-      <div style={styles.grid}>
-        <Field label="Crop Type">
-          <select value={form.crop} onChange={setField("crop")} style={styles.control}>
-            {CROPS.map((c) => (
+      <div style={s.grid}>
+
+        {/* ── Crop ── */}
+        <div style={s.field}>
+          <label style={s.label}>Crop Type</label>
+          <select
+            value={form.crop}
+            onChange={setStr("crop")}
+            style={s.select}
+          >
+            {crops.length === 0 && (
+              <option disabled>Loading crops…</option>
+            )}
+            {crops.map(c => (
               <option key={c.value} value={c.value}>
                 {c.emoji} {c.label}
               </option>
             ))}
           </select>
-        </Field>
+        </div>
 
-        <Field label="Quantity">
+        {/* ── Quantity ── */}
+        <div style={s.field}>
+          <label style={s.label}>Quantity</label>
           <input
             type="number"
             value={form.qty}
-            onChange={setField("qty")}
+            onChange={setNum("qty")}
             min={0.5} max={500} step={0.5}
-            style={styles.control}
+            style={s.input}
           />
-        </Field>
+        </div>
 
-        <Field label="Unit">
-          <select value={form.unit} onChange={setField("unit")} style={styles.control}>
+        {/* ── Unit ── */}
+        <div style={s.field}>
+          <label style={s.label}>Unit</label>
+          <select
+            value={form.unit}
+            onChange={setStr("unit")}
+            style={s.select}
+          >
             <option value="quintal">Quintal (100 kg)</option>
             <option value="ton">Metric Ton</option>
             <option value="kg">Kilogram</option>
           </select>
-        </Field>
+        </div>
 
-        <Field label="Vehicle">
-          <select value={form.vehicle} onChange={setField("vehicle")} style={styles.control}>
-            {VEHICLES.map((v) => (
+        {/* ── Vehicle ── */}
+        <div style={s.field}>
+          <label style={s.label}>Vehicle</label>
+          <select
+            value={form.vehicle}
+            onChange={setStr("vehicle")}
+            style={s.select}
+          >
+            {vehicles.length === 0 && (
+              <option disabled>Loading vehicles…</option>
+            )}
+            {vehicles.map(v => (
               <option key={v.value} value={v.value}>
-                {v.label} — {v.capacity} @ ₹{v.ratePerKm}/km
+                {v.label} ({v.capacity}) ₹{v.ratePerKm}/km
               </option>
             ))}
           </select>
-        </Field>
+        </div>
 
-        <Field label="Your Location">
-          <select value={form.location} onChange={setField("location")} style={styles.control}>
-            {LOCATIONS.map((l) => (
+        {/* ── Location ── */}
+        <div style={s.field}>
+          <label style={s.label}>Your Location</label>
+          <select
+            value={form.location}
+            onChange={setStr("location")}
+            style={s.select}
+          >
+            {LOCATIONS.map(l => (
               <option key={l.value} value={l.value}>
                 {l.label}
               </option>
             ))}
           </select>
-        </Field>
+        </div>
 
-        <Field label="Loading / Unloading (₹)">
+        {/* ── Handling cost ── */}
+        <div style={s.field}>
+          <label style={s.label}>Loading / Unloading (₹)</label>
           <input
             type="number"
             value={form.handling}
-            onChange={setField("handling")}
+            onChange={setNum("handling")}
             min={0} step={50}
-            style={styles.control}
+            style={s.input}
           />
-        </Field>
+        </div>
+
       </div>
 
       <button
-        style={{ ...styles.btn, ...(loading ? styles.btnDisabled : {}) }}
-        onClick={handleSubmit}
-        disabled={loading}
+        onClick={submit}
+        disabled={loading || crops.length === 0}
+        style={{
+          ...s.btn,
+          ...(loading || crops.length === 0 ? s.btnDisabled : {}),
+        }}
       >
         {loading ? "Calculating…" : "Find Best Mandi →"}
       </button>
@@ -121,77 +160,85 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading }) => {
   );
 };
 
-// ── Sub-component ────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────
+// NOTE: selects use the browser's native appearance intentionally.
+// Do NOT set appearance:none here — it breaks the dropdown on Windows Chrome.
 
-interface FieldProps {
-  label:    string;
-  children: React.ReactNode;
-}
-
-const Field: React.FC<FieldProps> = ({ label, children }) => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-    <label style={fieldLabel}>{label}</label>
-    {children}
-  </div>
-);
-
-const fieldLabel: React.CSSProperties = {
-  fontSize: 12,
-  color: "#6b6b6b",
-  fontWeight: 500,
-};
-
-const styles: Record<string, React.CSSProperties> = {
+const s: Record<string, React.CSSProperties> = {
   panel: {
-    background: "#ffffff",
-    border: "1px solid rgba(0,0,0,0.10)",
+    background:   "#ffffff",
+    border:       "1px solid rgba(0,0,0,0.12)",
     borderRadius: 16,
-    padding: "1.5rem",
+    padding:      "1.5rem",
     marginBottom: "1.5rem",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+    boxShadow:    "0 1px 4px rgba(0,0,0,0.06)",
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#4a7c23",
+    fontSize:      11,
+    fontWeight:    700,
+    color:         "#4a7c23",
     letterSpacing: "0.08em",
     textTransform: "uppercase",
-    marginBottom: 12,
+    marginBottom:  14,
+    margin:        "0 0 14px 0",
   },
   grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-    gap: 14,
+    display:             "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+    gap:                 14,
   },
-  control: {
-    padding: "9px 11px",
-    border: "1px solid rgba(0,0,0,0.12)",
+  field: {
+    display:       "flex",
+    flexDirection: "column",
+    gap:           5,
+  },
+  label: {
+    fontSize:   12,
+    fontWeight: 600,
+    color:      "#555555",
+  },
+  // Native select — no appearance override, works on all browsers + OS
+  select: {
+    width:        "100%",
+    padding:      "9px 10px",
+    fontSize:     13,
+    fontFamily:   "inherit",
+    color:        "#1a1a1a",
+    background:   "#ffffff",
+    border:       "1.5px solid #cccccc",
     borderRadius: 8,
-    fontSize: 14,
-    background: "#faf8f3",
-    color: "#1a1a1a",
-    outline: "none",
-    width: "100%",
-    appearance: "none" as const,
-    WebkitAppearance: "none" as const,
+    cursor:       "pointer",
+    outline:      "none",
+  },
+  input: {
+    width:        "100%",
+    padding:      "9px 10px",
+    fontSize:     13,
+    fontFamily:   "inherit",
+    color:        "#1a1a1a",
+    background:   "#ffffff",
+    border:       "1.5px solid #cccccc",
+    borderRadius: 8,
+    outline:      "none",
+    boxSizing:    "border-box",
   },
   btn: {
-    marginTop: "1.25rem",
-    width: "100%",
-    padding: "13px",
-    background: "#2d5016",
-    color: "#fff",
-    border: "none",
-    borderRadius: 10,
-    fontSize: 15,
-    fontWeight: 500,
-    cursor: "pointer",
+    marginTop:     "1.25rem",
+    width:         "100%",
+    padding:       "13px",
+    background:    "#2d5016",
+    color:         "#ffffff",
+    border:        "none",
+    borderRadius:  10,
+    fontSize:      15,
+    fontWeight:    600,
+    fontFamily:    "inherit",
+    cursor:        "pointer",
     letterSpacing: "0.02em",
-    transition: "background 0.15s",
   },
   btnDisabled: {
-    background: "#aaa",
-    cursor: "not-allowed",
+    background: "#a0a0a0",
+    cursor:     "not-allowed",
   },
 };
 
