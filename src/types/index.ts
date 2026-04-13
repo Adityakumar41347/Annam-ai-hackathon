@@ -85,7 +85,7 @@ export interface AnalysisInputs {
 }
 
 /** Supported quantity units */
-export type QuantityUnit = "quintal" | "ton" | "kg";
+export type QuantityUnit = ""|"quintal" | "ton" | "kg";
 
 /** Perishability risk level */
 export type RiskLevel = "high" | "medium" | "low";

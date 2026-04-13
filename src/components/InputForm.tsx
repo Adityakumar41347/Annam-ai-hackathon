@@ -20,13 +20,15 @@ interface Props {
 
 const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => {
   const [form, setForm] = useState<FormState>({
-    crop:     "onion",
-    qty:      5,
-    unit:     "quintal",
-    vehicle:  "tata_ace",
-    location: "haridwar",
-    handling: 200,
+    crop:     "",
+    qty:      0,
+    unit:     "",
+    vehicle:  "",
+    location: "",
+    handling: 0,
   });
+
+
 
   const setStr =
     (key: keyof FormState) =>
@@ -66,6 +68,7 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => 
             {crops.length === 0 && (
               <option disabled>Loading crops…</option>
             )}
+             <option value="" disabled hidden>Select Crop 🌾</option>
             {crops.map(c => (
               <option key={c.value} value={c.value}>
                 {c.emoji} {c.label}
@@ -94,6 +97,7 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => 
             onChange={setStr("unit")}
             style={s.select}
           >
+            <option value="" disabled hidden >Select Unit (Kg, Quintal, etc.)</option>
             <option value="quintal">Quintal (100 kg)</option>
             <option value="ton">Metric Ton</option>
             <option value="kg">Kilogram</option>
@@ -105,12 +109,21 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => 
           <label style={s.label}>Vehicle</label>
           <select
             value={form.vehicle}
-            onChange={setStr("vehicle")}
+            onChange={(e) => {//It will auto fetch the loading and handling cost auto
+                const raw = e.target.value;
+                const selectedVehicle = vehicles.find(v => v.value === raw);
+                setForm(prev => ({
+                     ...prev,
+                     vehicle: raw,
+                     handling: selectedVehicle ? selectedVehicle.loadingCost : prev.handling,
+                }));
+            }}
             style={s.select}
           >
             {vehicles.length === 0 && (
               <option disabled>Loading vehicles…</option>
             )}
+             <option value="" disabled hidden>Select The Vehicle 🛻</option>
             {vehicles.map(v => (
               <option key={v.value} value={v.value}>
                 {v.label} ({v.capacity}) ₹{v.ratePerKm}/km
@@ -119,23 +132,8 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => 
           </select>
         </div>
 
-        {/* ── Location ── */}
-        <div style={s.field}>
-          <label style={s.label}>Your Location</label>
-          <select
-            value={form.location}
-            onChange={setStr("location")}
-            style={s.select}
-          >
-            {LOCATIONS.map(l => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-        </div>
 
-        {/* ── Handling cost ── */}
+         {/* ── Handling cost ── */}
         <div style={s.field}>
           <label style={s.label}>Loading / Unloading (₹)</label>
           <input
@@ -146,6 +144,26 @@ const InputForm: React.FC<Props> = ({ onAnalyze, loading, crops, vehicles }) => 
             style={s.input}
           />
         </div>
+
+        {/* ── Location ── */}
+        <div style={s.field}>
+          <label style={s.label}>Your Location</label>
+          <select
+            value={form.location}
+            onChange={setStr("location")}
+            style={s.select}
+          >
+            <option value="" disabled hidden>Select The Location 📍</option>
+
+            {LOCATIONS.map(l => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+       
 
       </div>
 
