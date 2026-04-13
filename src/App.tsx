@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./styles/global.css";
 
 import Header             from "./components/Header";
@@ -9,6 +10,9 @@ import RouteMap           from "./components/RouteMap";
 import ImpactSummary      from "./components/ImpactSummary";
 import PerishabilityAlert from "./components/PerishabilityAlert";
 import PriceHistoryChart  from "./components/PriceHistoryChart";
+import Footer from "./components/Footer";
+import About from "./pages/About";
+import Help from "./pages/Help";
 
 import {
   fetchCrops,
@@ -167,71 +171,95 @@ const App: React.FC = () => {
     );
   }
 
-  // ── Main UI ────────────────────────────────────────────────
-  return (
-    <div style={styles.app}>
-      <Header />
+  const HomePage: React.FC = () => (
+  <>
+    <InputForm
+      onAnalyze={handleAnalyze}
+      loading={loading}
+      crops={crops}
+      vehicles={vehicles}
+    />
 
-      <InputForm
-        onAnalyze={handleAnalyze}
-        loading={loading}
-        crops={crops}
-        vehicles={vehicles}
+    {error && (
+      <div style={styles.errorBox}>⚠️ {error}</div>
+    )}
+
+    {loading && (
+      <div style={styles.loadingBox}>
+        <div style={styles.spinner} />
+        <span>Fetching live market prices and calculating optimal route…</span>
+      </div>
+    )}
+
+    {analysis && !loading && (
+      <div id="results">
+        <PerishabilityAlert risk={analysis.perishRisk} />
+
+        <SL>Route Map</SL>
+        <RouteMap
+          origin={analysis.inputs.location}
+          results={analysis.results}
+          winner={analysis.winner}
+        />
+
+        <SL>Mandi Comparison</SL>
+        <div style={styles.mandiGrid}>
+          {analysis.results.map((r, i) => (
+            <MandiCard
+              key={r.id}
+              result={r}
+              isWinner={r.id === analysis.winner.id}
+              rank={i + 1}
+            />
+          ))}
+        </div>
+
+        <SL>Profit Breakdown</SL>
+        <ProfitChart results={analysis.results} />
+        <CostBreakdownChart results={analysis.results} />
+
+        <SL>Price Trends</SL>
+        <PriceHistoryChart
+          results={analysis.results}
+          backendUp={backendUp}
+        />
+
+        <ImpactSummary
+          analysis={analysis}
+          crop={analysis.inputs.crop}
+          vehicle={analysis.inputs.vehicle}
+        />
+      </div>
+    )}
+  </>
+);
+
+  // ── Main UI ────────────────────────────────────────────────
+return (
+  <div style={styles.app}>
+    <Header />
+
+    <Routes>
+      
+      {/* HOME PAGE */}
+      <Route
+        path="/"
+        element={
+          <HomePage />
+        }
       />
 
-      {error && (
-        <div style={styles.errorBox}>⚠️ {error}</div>
-      )}
+      
+      <Route path="/about" element={<About />} />
 
-      {loading && (
-        <div style={styles.loadingBox}>
-          <div style={styles.spinner} />
-          <span>Fetching live market prices and calculating optimal route…</span>
-        </div>
-      )}
+     
+      <Route path="/help" element={<Help />} />
 
-      {analysis && !loading && (
-        <div id="results">
-          <PerishabilityAlert risk={analysis.perishRisk} />
+    </Routes>
 
-          <SL>Route Map</SL>
-          <RouteMap
-            origin={analysis.inputs.location}
-            results={analysis.results}
-            winner={analysis.winner}
-          />
-
-          <SL>Mandi Comparison</SL>
-          <div style={styles.mandiGrid}>
-            {analysis.results.map((r, i) => (
-              <MandiCard
-                key={r.id}
-                result={r}
-                isWinner={r.id === analysis.winner.id}
-                rank={i + 1}
-              />
-            ))}
-          </div>
-
-          <SL>Profit Breakdown</SL>
-          <ProfitChart results={analysis.results} />
-          <CostBreakdownChart results={analysis.results} />
-
-          <SL>Price Trends</SL>
-          <PriceHistoryChart
-            results={analysis.results}
-            backendUp={backendUp}
-          />
-
-          <ImpactSummary
-            analysis={analysis}
-            crop={analysis.inputs.crop}
-            vehicle={analysis.inputs.vehicle}
-          />
-        </div>
-      )}
-    </div>
-  );
+    <Footer />
+  </div>
+);
 };
 
 const styles: Record<string, React.CSSProperties> = {
